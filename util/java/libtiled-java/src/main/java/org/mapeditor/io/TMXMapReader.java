@@ -46,9 +46,9 @@ import java.net.URL;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
-
 import javax.imageio.ImageIO;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.JAXBContext;
@@ -56,11 +56,11 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.mapeditor.core.AnimatedTile;
 import org.mapeditor.core.Group;
 import org.mapeditor.core.ImageLayer;
 import org.mapeditor.core.Map;
+import org.mapeditor.core.MapLayer;
 import org.mapeditor.core.MapObject;
 import org.mapeditor.core.ObjectGroup;
 import org.mapeditor.core.Point;
@@ -370,6 +370,7 @@ public class TMXMapReader {
         final int id = getAttribute(t, "id", 0);
         final String name = getAttributeValue(t, "name");
         final String type = getAttributeValue(t, "type");
+        final String clazz = getAttributeValue(t, "class");
         final String gid = getAttributeValue(t, "gid");
         final double x = getDoubleAttribute(t, "x", 0);
         final double y = getDoubleAttribute(t, "y", 0);
@@ -387,6 +388,9 @@ public class TMXMapReader {
         }
         if (type != null) {
             obj.setType(type);
+        }
+        if (clazz != null) {
+            obj.setClazz(clazz);
         }
         if (gid != null) {
             long tileId = Long.parseLong(gid);
@@ -554,32 +558,6 @@ public class TMXMapReader {
 
         g.getLayers().clear();
 
-        // Load the layers and objectgroups
-        for (Node sibs = t.getFirstChild(); sibs != null;
-             sibs = sibs.getNextSibling()) {
-            if ("group".equals(sibs.getNodeName())) {
-                Group group = unmarshalGroup(sibs);
-                if (group != null) {
-                    g.getLayers().add(group);
-                }
-            } else if ("layer".equals(sibs.getNodeName())) {
-                TileLayer layer = readLayer(sibs);
-                if (layer != null) {
-                    g.getLayers().add(layer);
-                }
-            } else if ("objectgroup".equals(sibs.getNodeName())) {
-                ObjectGroup group = unmarshalObjectGroup(sibs);
-                if (group != null) {
-                    g.getLayers().add(group);
-                }
-            } else if ("imagelayer".equals(sibs.getNodeName())) {
-                ImageLayer imageLayer = unmarshalImageLayer(sibs);
-                if (imageLayer != null) {
-                    g.getLayers().add(imageLayer);
-                }
-            }
-        }
-
         return g;
     }
 
@@ -644,8 +622,8 @@ public class TMXMapReader {
 
         ml.setId(layerId);
 
-        final int offsetX = getAttribute(t, "x", 0);
-        final int offsetY = getAttribute(t, "y", 0);
+        final int offsetX = getAttribute(t, "offsetx", 0) / map.getTileWidth();
+        final int offsetY = getAttribute(t, "offsety", 0) / map.getTileHeight();
         final int visible = getAttribute(t, "visible", 1);
         String opacity = getAttributeValue(t, "opacity");
 
@@ -840,32 +818,40 @@ public class TMXMapReader {
         }
 
         // Load the layers and groups
-        for (Node sibs = mapNode.getFirstChild(); sibs != null;
-                sibs = sibs.getNextSibling()) {
+        parseLayers(mapNode, layer -> map.addLayer(layer));
+
+        tilesetPerFirstGid = null;
+    }
+
+    private void parseLayers(Node mapNode, Consumer<MapLayer> addToMap) throws Exception {
+        for (Node sibs = mapNode.getFirstChild(); sibs != null; sibs = sibs.getNextSibling()) {
             if ("group".equals(sibs.getNodeName())) {
                 Group group = unmarshalGroup(sibs);
-                if (group != null) {
-                    map.addLayer(group);
-                }
+                addToMap.accept(group);
+                parseLayers(sibs, layer -> addLayerToGroup(group, layer));
             }
             if ("layer".equals(sibs.getNodeName())) {
                 TileLayer layer = readLayer(sibs);
                 if (layer != null) {
-                    map.addLayer(layer);
+                    addToMap.accept(layer);
                 }
             } else if ("objectgroup".equals(sibs.getNodeName())) {
                 ObjectGroup group = unmarshalObjectGroup(sibs);
                 if (group != null) {
-                    map.addLayer(group);
+                    addToMap.accept(group);
                 }
             } else if ("imagelayer".equals(sibs.getNodeName())) {
                 ImageLayer imageLayer = unmarshalImageLayer(sibs);
                 if (imageLayer != null) {
-                    map.addLayer(imageLayer);
+                    addToMap.accept(imageLayer);
                 }
             }
         }
-        tilesetPerFirstGid = null;
+    }
+
+    private void addLayerToGroup(Group group, MapLayer layer) {
+        layer.setMap(map);
+        group.getLayers().add(layer);
     }
 
     private Map unmarshal(InputStream in) throws Exception {

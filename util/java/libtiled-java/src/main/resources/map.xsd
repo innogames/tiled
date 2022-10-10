@@ -18,13 +18,13 @@
   %%
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-  
+
   1. Redistributions of source code must retain the above copyright notice,
      this list of conditions and the following disclaimer.
   2. Redistributions in binary form must reproduce the above copyright notice,
      this list of conditions and the following disclaimer in the documentation
      and/or other materials provided with the distribution.
-  
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -356,7 +356,7 @@ POSSIBILITY OF SUCH DAMAGE.
                 <xs:documentation>
                     Unique ID of the layer. Each layer that is added to a map gets a
                     unique id. Even if a layer is deleted, no layer ever gets the
-                    same ID. Can not be changed in Tiled. 
+                    same ID. Can not be changed in Tiled.
 
                     @since 1.2
                 </xs:documentation>
@@ -686,6 +686,13 @@ POSSIBILITY OF SUCH DAMAGE.
             <xs:annotation>
                 <xs:documentation>
                     The type of the object. An arbitrary string.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="class" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    The class of the object. An arbitrary string.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -1075,6 +1082,16 @@ POSSIBILITY OF SUCH DAMAGE.
             <xs:annotation>
                 <xs:documentation>
                     The type of the tile. Refers to an object type and is used
+                    by tile objects. (optional)
+
+                    @since 1.0
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="class" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    The class of the tile. Refers to an object type and is used
                     by tile objects. (optional)
 
                     @since 1.0

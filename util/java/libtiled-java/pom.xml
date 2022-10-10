@@ -8,8 +8,9 @@
     <parent>
         <groupId>org.mapeditor</groupId>
         <artifactId>tiled-parent</artifactId>
-        <version>1.4.2-SNAPSHOT</version>
+        <version>1.4.2</version>
     </parent>
+    <version>1.4.2.1-IG</version>
 
     <artifactId>libtiled</artifactId>
     <packaging>jar</packaging>
@@ -94,6 +95,13 @@
                         </plugin>
                     </plugins>
                 </configuration>
+                <dependencies>
+                <dependency>
+                        <groupId>org.glassfish.jaxb</groupId>
+                        <artifactId>jaxb-runtime</artifactId>
+                        <version>2.3.3</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <goals>
